@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "SFDCNavigatorReloaded",
+    "description": "This extension helps you get to any Salesforce page quickly. Just type in what you need to do. NOTE: You must create a CSP Trusted…"
+  },
+  "appDescription": {
+    "message": "Salesforce Navigator Reloaded",
+    "description": "This extension helps you get to any Salesforce page quickly. Just type in what you need to do. NOTE: You must create a CSP Trusted…"
+  }
+}
