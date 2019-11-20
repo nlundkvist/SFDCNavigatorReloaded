@@ -60,7 +60,7 @@
 		"showSearchBox": {
 			"description": "Open Search Box",
 			"suggested_key": {
-				"default": "Ctrl+Shift+Space"
+				"default": "Ctrl+Space"
 			}
 		},
 		"showAppMenu": {
@@ -70,7 +70,7 @@
 			}
 		},
 		"refreshView": {
-			"description": "Perform a soft page refresh",
+			"description": "Perform a soft lightning refresh",
 			"suggested_key": {
 				"default": "Alt+Shift+R"
 			}
