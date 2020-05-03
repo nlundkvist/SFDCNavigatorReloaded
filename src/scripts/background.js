@@ -46,6 +46,7 @@ var parseSetupTree = (response, url)=>{
 			targetUrl = url + "/lightning/setup/ObjectManager/" + pluralize(parent, 1).replace(/\s/g, "")
 			targetUrl += classicToLightingMap[item.innerText]
 			if (targetUrl.includes('/Product/')) targetUrl = targetUrl.replace('/Product/', '/Product2/')
+			if (targetUrl.includes('/PriceBook/')) targetUrl = targetUrl.replace('/PriceBook/', '/Pricebook2/')
 		}
 		if(commands[strName] == null) commands[strName] = {url: targetUrl, key: strName}
 	})
@@ -85,16 +86,15 @@ var parseCustomObjects = (response, url)=>{
 }
 var goToUrl = (targetUrl, newTab)=>{
 	targetUrl = targetUrl.replace(/moz-extension:\/\/\w+\//,"/")
+	targetUrl = targetUrl.replace(/chrome-extension:\/\/\w+\//,"/")
+	targetUrl = targetUrl.replace(/extension:\/\/\w+\//,"/")
 	chrome.tabs.query({currentWindow: true, active: true}, (tabs)=>{
 		let newUrl = targetUrl.match(/.*\.com(.*)/)
 		newUrl = newUrl ? newUrl[1] : targetUrl
 		if(newTab)
-			chrome.tabs.create({ active: false, url: tabs[0].url.match(/.*\.com/)[0] + newUrl})
+			chrome.tabs.create({ index: tabs[0].index + 1, active: true, url: tabs[0].url.match(/.*\.com/)[0] + newUrl})
 		else {
-			let code = `
-				window.eval('$A.get("e.force:navigateToURL").setParams({"url": "${newUrl}"}).fire()')
-			`;
-			chrome.tabs.executeScript(tabs[0].id, {code: code})
+			chrome.tabs.update(tabs[0].id, {url: targetUrl})
 		}
 	})
 }
@@ -120,26 +120,27 @@ chrome.commands.onCommand.addListener((command)=>{
 chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
 	var orgKey = request.key != null ? request.key.split('!')[0] : request.key
 	if (request.action == "getApiSessionId") {
-		if (request.key != null) {
-			request.sid = request.uid = request.domain = ""
-			chrome.cookies.getAll({}, (all)=>{
-				all.forEach((c)=>{
-					if(c.domain.includes("salesforce.com") && c.value.includes(request.key) && c.name == "sid") {
-						request.sid = c.value
-						request.domain = c.domain
+		if (request.serverInstance) {
+			let instance = request.serverInstance.replace("https://", "").split(".")[0];
+			let domain = null;
+			let sid = null;
+			chrome.cookies.getAll({}, (all) => {
+				all.forEach(c => {
+					if (c.name === "sid" && c.domain.startsWith(instance) && c.domain.includes("salesforce.com")) {
+						sid = c.value;
+						domain = c.domain;
 					}
 				})
-				if(request.sid != "") {
-					getHTTP("https://" + request.domain + '/services/data/' + SFAPI_VERSION, "json",
-						{"Authorization": "Bearer " + request.sid, "Accept": "application/json"}
+				if (sid) {
+					getHTTP("https://" + domain + '/services/data/' + SFAPI_VERSION, "json",
+						{"Authorization": "Bearer " + sid, "Accept": "application/json"}
 					).then(response => {
-						request.uid = response.identity.match(/005.*/)[0]
-						sendResponse({sessionId: request.sid, userId: request.uid, apiUrl: request.domain})
+						let uid = response.identity.match(/005.*/)[0]
+						sendResponse({sessionId: sid, userId: uid, apiUrl: domain})
 					})
 				}
-				else sendResponse({error: "No session data found for " + request.key})
 			})
-		} else sendResponse({error: "Must include orgId"})
+		}
 	}
 	switch(request.action) {
 		case 'goToUrl': goToUrl(request.url, request.newTab); break

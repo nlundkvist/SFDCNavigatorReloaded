@@ -354,16 +354,16 @@ var sfnav = (()=>{
 // setup
 	function init() {
 		try {
-			orgId = document.cookie.match(/sid=([\w\d]+)/)[1]
 			serverInstance = getServerInstance()
-			sessionHash = getSessionHash()
 			if(sessionId == null) {
-				chrome.runtime.sendMessage({ action: 'getApiSessionId', key: orgId }, response=>{
+				chrome.runtime.sendMessage({ action: 'getApiSessionId', serverInstance: serverInstance }, response=>{
 					if(response.error) console.log("response", orgId, response, chrome.runtime.lastError)
 					else {
 						sessionId = unescape(response.sessionId)
 						userId = unescape(response.userId)
 						apiUrl = unescape(response.apiUrl)
+						orgId = sessionId.split("!")[0]
+						sessionHash = getSessionHash(sessionId)
 						var div = document.createElement('div')
 						div.setAttribute('id', 'sfnav_searchBox')
 						var loaderURL = chrome.extension.getURL("images/ajax-loader.gif")

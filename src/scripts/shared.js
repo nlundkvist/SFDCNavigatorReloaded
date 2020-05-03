@@ -13,10 +13,9 @@ var getServerInstance = ()=>{
 	}
 	return targetUrl
 }
-var getSessionHash = ()=>{
+var getSessionHash = (sid)=>{
 	try {
-		let sId = document.cookie.match(regMatchSid)[1]
-		return sId.split('!')[0] + '!' + sId.substring(sId.length - 10, sId.length)
+		return sid.split('!')[0] + '!' + sid.substring(sid.length - 10, sid.length)
 	} catch(e) { if(debug) console.log(e) }
 }
 let getHTTP = function(targetUrl, type = "json", headers = {}, data = {}, method = "GET") {
